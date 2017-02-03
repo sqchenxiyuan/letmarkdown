@@ -1,8 +1,9 @@
+import parser from  './parse.js';
+
 let letmarkdown={};
 
 letmarkdown.parse=function(text){
-
-  return text+'123';
+  return parser.parse(text);
 };
 
 if(window){
