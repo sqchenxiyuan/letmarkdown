@@ -24,7 +24,7 @@
 <script type="text/javascript">
   $.get('/documents/example-1.md',function(data){
     $('#old').html(data);
-    $('#new').html(letmarkdown.parse(data));
+    $('#new').html(letmarkdown.toHTML(letmarkdown.parse(data)));
   });
 </script>
 </html>

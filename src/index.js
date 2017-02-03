@@ -1,15 +1,18 @@
-import parser from  './parse.js';
+import parse from  './parse.js';
+import toHTML from  './toHTML.js';
 
-let letmarkdown={};
+let letmarkdown={
+  parse,
+  toHTML};
 
-letmarkdown.parse=function(text){
-  return parser.parse(text);
-};
 
 if(window){
   window.letmarkdown=letmarkdown;
 }
+
+
 export default letmarkdown;
 export {
-  parse
+  parse,
+  toHTML
 };
