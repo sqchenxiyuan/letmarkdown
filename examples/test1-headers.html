@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Header TEST</title>
+  <style media="screen">
+    div{
+      display: inline-block;
+      width: 40%;
+      float: left;
+      padding: 10px;
+      border: 1px black solid;
+    }
+  </style>
+</head>
+<body>
+  <div id="old"></div>
+  <div id="new"></div>
+</body>
+<script src="/js/index.js" charset="utf-8"></script>
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+<script type="text/javascript">
+  $.get('/documents/example-1.md',function(data){
+    $('#old').html(data);
+    $('#new').html(letmarkdown.parse(data));
+  });
+</script>
+</html>
