@@ -7,6 +7,10 @@ export default function toHTML(markarray){
         htmldom=document.createElement('h'+mark.level);
         htmldom.innerHTML=mark.content;
       }break;
+      case 'blockquote':{
+        htmldom=document.createElement('blockquote');
+        htmldom.innerHTML=toHTML(mark.marked);
+      }break;
       default:
       {
         htmldom=document.createElement('p');
