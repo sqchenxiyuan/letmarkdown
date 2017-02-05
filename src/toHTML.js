@@ -11,6 +11,10 @@ export default function toHTML(markarray){
         htmldom=document.createElement('blockquote');
         htmldom.innerHTML=toHTML(mark.marked);
       }break;
+      case 'list':{
+        htmldom=document.createElement('blockquote');
+        htmldom.innerHTML=toHTML(mark.marked);
+      }break;
       default:
       {
         htmldom=document.createElement('p');

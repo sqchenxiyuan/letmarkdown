@@ -55,6 +55,33 @@ export default function parse(text){
       }
     }
 
+    if(/^\+ .+/.test(text)){
+      let lastnum=1;
+      let last=out[out.length-1];
+
+      if(last.type==='text'&&last.content===''){
+        last=out[out.length-2];
+        lastnum++;
+      }
+
+      if(last.type==='list'){
+        out.splice(-lastnum,lastnum);
+        out.push({
+          type:'list',
+          content:last.content+text.replace(/^>/,'')+'\n',
+          marked:parse(last.content+text.replace(/^>/,'')+'\n')
+        });
+        return;
+      }else{
+        out.push({
+          type:'list',
+          content:text.replace(/^>/,'')+'\n',
+          marked:parse(text.replace(/^>/,'')+'\n')
+        });
+        return;
+      }
+    }
+
     out.push({
       type:'text',
       content:text
