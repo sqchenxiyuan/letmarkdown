@@ -12,8 +12,18 @@
 <script src="/js/index.js" charset="utf-8"></script>
 <script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
 <script type="text/javascript">
+  var letmd=new LetMDEngine();
+
+  letmd.appendTextConfigs({//添加对Header1的匹配
+    name:"header1",
+    type:1,
+    check:/^#\s+.+#*/,
+
+  });
+
   $.get('/documents/example-1.md',function(data){
     $('#old').html(data);
-    $('#new').html(letmarkdown.toHTML(letmarkdown.parse(data)));
+    console.log(letmd.parse(data));
+    $('#new').html(letmd.toHTML(letmd.parse(data)));
   });
 </script>
