@@ -1,0 +1,19 @@
+<style media="screen">
+    div{
+    display: inline-block;
+    width: 40%;
+    float: left;
+    padding: 10px;
+    border: 1px black solid;
+    }
+</style>
+<div id="old"></div>
+<div id="new"></div>
+<script src="/js/index.js" charset="utf-8"></script>
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+<script type="text/javascript">
+  $.get('/documents/example-1.md',function(data){
+    $('#old').html(data);
+    $('#new').html(letmarkdown.toHTML(letmarkdown.parse(data)));
+  });
+</script>
