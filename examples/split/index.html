@@ -14,16 +14,71 @@
 <script type="text/javascript">
   var letmd=new LetMDEngine();
 
-  letmd.appendTextConfigs({//添加对Header1的匹配
-    name:"header1",
+  letmd.appendTextConfigs({//添加对Header的匹配
+    name:"header",
     type:1,
-    check:/^#\s+.+#*/,
+    check:function(arr,result){
+      var text=arr[0].trim();
+      if(/^#{1,6}\s+\S+\s*#*$/.test(text)){
+        let l=text.match(/^#{1,6}/)[0].length
+        let content=text.replace(/^#{1,6}\s+/,'').replace(/\s*#*$/,'');
 
+        arr.shift();
+        result.push(`<h${l}>${content}</h${l}>`)
+        return true;
+      }
+    },
+  });
+
+  letmd.appendTextConfigs({//添加对Header的匹配
+    name:"header",
+    type:1,
+    check:function(arr,result){
+        if(arr.length<2) return false;
+        var text1=arr[0].trim();
+        if(text1.length===0)return false;
+        var text2=arr[1].trim();
+        if(/^={3,}$/.test(text2)){
+            arr.shift();
+            arr.shift();
+            result.push(`<h1>${text1}</h1>`)
+            return true;
+        }
+
+        if(/^-{3,}$/.test(text2)){
+            arr.shift();
+            arr.shift();
+            result.push(`<h2>${text1}</h2>`)
+            return true;
+        }
+    },
+  });
+
+  letmd.appendTextConfigs({//添加对分隔线的匹配
+    name:"dividing-line",
+    type:1,
+    check:function(arr,result){
+      var text=arr[0].split(/\s+/).join('');
+      if(/^(-{3,}|\*{3,}|_{3,})$/.test(text)){
+            arr.shift()
+            result.push(`<hr>`)
+        }
+    },
+  });
+
+  letmd.appendTextConfigs({//添加对p的匹配
+    name:"text",
+    type:1,
+    check:function(arr,result){
+      var text=arr[0].trim();
+      arr.shift();
+      result.push(`<p>${text}</p>`);
+      return true;
+    },
   });
 
   $.get('/documents/example-1.md',function(data){
     $('#old').html(data);
-    console.log(letmd.parse(data));
-    $('#new').html(letmd.toHTML(letmd.parse(data)));
+    $('#new').html(letmd.parse(data));
   });
 </script>

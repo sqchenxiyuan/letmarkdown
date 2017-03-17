@@ -6,14 +6,11 @@ class LetMDEngine{
   constructor(){
     this.textConfigMap={};
     this.textConfigs=[];
+    this.plugins=[];
   }
 
   appendTextConfigs(config){
-    if(!config.name){
-      console.error('未定义插件的名字');
-      return ;
-    }
-    this.textConfigs.push(config);
+    this.plugins.push(config);
   }
 
   parse(){
