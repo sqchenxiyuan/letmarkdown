@@ -1,4 +1,5 @@
 export default function parse(md){
+  console.log(md);
   let result=[];
   let textArr=md.split('\n');
   let plugins=this.plugins;
@@ -12,5 +13,5 @@ export default function parse(md){
     }
   }
 
-  return result;
+  return result.join('');
 }

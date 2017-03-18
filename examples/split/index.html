@@ -94,6 +94,7 @@
             i--;
           }
           console.log(intext);
+          console.log(intext.join('\n'));
           result.push(`<blockquote>${letmd.parse(intext.join('\n'))}</blockquote>`);
           return true;
       }
