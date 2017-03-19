@@ -63,6 +63,18 @@ _ _ _
 
 1.  1
 
+# 代码区块
+
+``` javascript
+
+var x=123;
+
+```
+
+
+        var x=123;
+    var x=123;
+
 
 
 12313```` javascript asdas ````
