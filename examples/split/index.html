@@ -93,9 +93,52 @@
             arr.shift();
             i--;
           }
-          console.log(intext);
-          console.log(intext.join('\n'));
           result.push(`<blockquote>${letmd.parse(intext.join('\n'))}</blockquote>`);
+          return true;
+      }
+    },
+  });
+
+  letmd.appendTextConfigs({//添加对列表的匹配
+    name:"blockquotes",
+    type:1,
+    check:function(arr,result){
+      let lis=[];
+      let li=[];
+      let sign='';
+      let i=0;
+      for(i=0;i<arr.length;i++){
+        let text=arr[i].trim();
+        let text_notrim=arr[i];
+        if(/^(\+|-|\*)\s/.test(text)&&(sign===''||text[0]===sign)){
+          if(lis.length>0){
+            li=[];
+          }
+          lis.push(li);
+          sign=text[0];
+          console.log(sign)
+          
+          li.push(text.substring(2));
+        }else if(i>0&&/(^\s{2,})|(^\s*$)/.test(text_notrim)){
+          li.push(text);
+        }else{
+          break;
+        }
+      }
+
+      if(lis.length!==0){
+          let lisHTML=[];
+          while(i>0){
+            arr.shift();
+            i--;
+          }
+          
+          lis.forEach((li)=>{
+            lisHTML.push(`<li>${letmd.parse(li.join('\n'))}</li>`)
+          });
+          
+
+          result.push(`<ul>${lisHTML.join('')}</ul>`);
           return true;
       }
     },
