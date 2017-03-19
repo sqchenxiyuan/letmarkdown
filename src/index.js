@@ -10,7 +10,11 @@ class LetMDEngine{
   }
 
   appendTextConfigs(config){
-    this.plugins.push(config);
+    if(Array.isArray(config)){
+      this.plugins=this.plugins.concat(config);
+    }else{
+      this.plugins.push(config);
+    }
   }
 
   parse(){

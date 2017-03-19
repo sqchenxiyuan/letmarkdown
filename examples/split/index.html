@@ -19,26 +19,26 @@
 <script type="text/javascript">
   var letmd=new LetMDEngine();
 
-  letmd.appendTextConfigs({//添加对Header的匹配
-    name:"header",
-    type:1,
-    check:function(arr,result){
-      var text=arr[0].trim();
-      if(/^#{1,6}\s+\S+\s*#*$/.test(text)){
-        let l=text.match(/^#{1,6}/)[0].length
-        let content=text.replace(/^#{1,6}\s+/,'').replace(/\s*#*$/,'');
+  letmd.appendTextConfigs([
+    {//添加对Header的匹配
+      name:"header",
+      type:1,
+      check:function(arr,result){
+        var text=arr[0].trim();
+        if(/^#{1,6}\s+\S+\s*#*$/.test(text)){
+          let l=text.match(/^#{1,6}/)[0].length
+          let content=text.replace(/^#{1,6}\s+/,'').replace(/\s*#*$/,'');
 
-        arr.shift();
-        result.push(`<h${l}>${content}</h${l}>`)
-        return true;
-      }
+          arr.shift();
+          result.push(`<h${l}>${content}</h${l}>`)
+          return true;
+        }
+      },
     },
-  });
-
-  letmd.appendTextConfigs({//添加对Header的匹配
-    name:"header",
-    type:1,
-    check:function(arr,result){
+    {//添加对Header的匹配
+      name:"header",
+      type:1,
+      check:function(arr,result){
         if(arr.length<2) return false;
         var text1=arr[0].trim();
         if(text1.length===0)return false;
@@ -56,213 +56,220 @@
             result.push(`<h2>${text1}</h2>`)
             return true;
         }
+      },
     },
-  });
-
-  letmd.appendTextConfigs({//添加对分隔线的匹配
-    name:"dividing-line",
-    type:1,
-    check:function(arr,result){
-      var text=arr[0].split(/\s+/).join('');
-      if(/^(-{3,}|\*{3,}|_{3,})$/.test(text)){
-            arr.shift()
-            result.push(`<hr>`)
+    {//添加对分隔线的匹配
+      name:"dividing-line",
+      type:1,
+      check:function(arr,result){
+        var text=arr[0].split(/\s+/).join('');
+        if(/^(-{3,}|\*{3,}|_{3,})$/.test(text)){
+              arr.shift()
+              result.push(`<hr>`)
+          }
+      },
+    },
+    {//添加对区块引用的匹配
+      name:"blockquotes",
+      type:1,
+      check:function(arr,result){
+        let intext=[];
+        let i=0;
+        for(i=0;i<arr.length;i++){
+          let text=arr[i].trim();
+          if(/^>/.test(text)){
+            intext.push(text.substring(1));
+          }else if(i>0&&/\s*/.test(text)&&arr[i+1]&&/^>/.test(arr[i+1].trim())){
+            intext.push(text);
+          }else{
+            break;
+          }
         }
-    },
-  });
 
-  letmd.appendTextConfigs({//添加对区块引用的匹配
-    name:"blockquotes",
-    type:1,
-    check:function(arr,result){
-      let intext=[];
-      let i=0;
-      for(i=0;i<arr.length;i++){
-        let text=arr[i].trim();
-        if(/^>/.test(text)){
-          intext.push(text.substring(1));
-        }else if(i>0&&/\s*/.test(text)&&arr[i+1]&&/^>/.test(arr[i+1].trim())){
-          intext.push(text);
+        if(intext.length!==0){
+            while(i>0){
+              arr.shift();
+              i--;
+            }
+            result.push(`<blockquote>${letmd.parse(intext.join('\n'))}</blockquote>`);
+            return true;
+        }
+      },
+    },
+    {//添加对无序列表的匹配
+      name:"unordered-list",
+      type:1,
+      check:function(arr,result){
+        let lis=[];
+        let li=[];
+        let sign='';
+        let i=0;
+        for(i=0;i<arr.length;i++){
+          let text=arr[i].trim();
+          let text_notrim=arr[i];
+          if(/^(\+|-|\*)\s/.test(text)&&(sign===''||text[0]===sign)){
+            if(lis.length>0){
+              li=[];
+            }
+            lis.push(li);
+            sign=text[0];
+            
+            li.push(text.substring(2));
+          }else if(i>0&&/(^\s{2,})|(^\s*$)/.test(text_notrim)){
+            li.push(text);
+          }else{
+            break;
+          }
+        }
+
+        if(lis.length!==0){
+            let lisHTML=[];
+            while(i>0){
+              arr.shift();
+              i--;
+            }
+            
+            lis.forEach((li)=>{
+              lisHTML.push(`<li>${letmd.parse(li.join('\n'))}</li>`)
+            });
+            
+
+            result.push(`<ul>${lisHTML.join('')}</ul>`);
+            return true;
+        }
+      },
+    },
+    {//添加对有序列表的匹配
+      name:"ordered-list",
+      type:1,
+      check:function(arr,result){
+        let lis=[];
+        let li=[];
+        let sign='';
+        let i=0;
+        for(i=0;i<arr.length;i++){
+          let text=arr[i].trim();
+          let text_notrim=arr[i];
+          if(/^\d+\.\s/.test(text)){
+            if(lis.length>0){
+              li=[];
+            }
+            lis.push(li);
+            sign=text[0];
+            
+            li.push(text.substring(3));
+          }else if(i>0&&/(^\s{2,})|(^\s*$)/.test(text_notrim)){
+            li.push(text);
+          }else{
+            break;
+          }
+        }
+
+        if(lis.length!==0){
+            let lisHTML=[];
+            while(i>0){
+              arr.shift();
+              i--;
+            }
+            
+            lis.forEach((li)=>{
+              lisHTML.push(`<li>${letmd.parse(li.join('\n'))}</li>`)
+            });
+            
+
+            result.push(`<ol>${lisHTML.join('')}</ol>`);
+            return true;
+        }
+      },
+    },
+    {//添加对代码区块-制表符格式的匹配
+      name:"precode",
+      type:1,
+      check:function(arr,result){
+        let codes=[];
+        let i=0;
+        for(i=0;i<arr.length;i++){
+          let text=arr[i];
+          if(/^(\s{4}|\t)/.test(text)){
+            codes.push(text.replace(/^(\s{4}|\t)/,''));
+          }else{
+            break;
+          }
+        }
+
+        if(codes.length!==0){
+            while(i>0){
+              arr.shift();
+              i--;
+            }
+
+            result.push(`<pre><code>${codes.join('\n')}</code></pre>`);
+            return true;
+        }
+      },
+    },
+    {//添加对代码区块-夹层格式的匹配
+      name:"precode",
+      type:1,
+      check:function(arr,result){
+        let codes=[];
+        let close=false;
+        let i=0;
+        for(i=0;i<arr.length;i++){
+          let text=arr[i].trim();
+          if(i===0&&!/^`{3}/.test(text)){
+            break;
+          }else if(i!==0&&/^`{3}\s*$/.test(text)){
+            close=true;
+            break;
+          }
+        }
+
+        if(close){
+            while(i>=0){
+              codes.push(arr.shift())
+              i--;
+            }
+            codes.pop();
+            codes.shift();
+
+            result.push(`<pre><code>${codes.join('\n')}</code></pre>`);
+            return true;
+        }
+      },
+    },
+    {//添加对空行的匹配
+      name:"text",
+      type:1,
+      check:function(arr,result){
+        var text=arr[0];
+        if(/^\s*$/.test(text)&&/^<p>/.test(result[result.length-1])){
+          arr.shift();
+          result.push('');
+          return true;
+        }
+      }
+    },
+    {//添加对p的匹配
+      name:"text",
+      type:1,
+      check:function(arr,result){
+        var text=arr[0].trim();
+        arr.shift();
+        let rlast=result.pop();
+        if(/^<p>.*<\/p>$/.test(rlast)){
+          text=rlast.replace(/^<p>/,'').replace(/<\/p>$/,'')+text;
         }else{
-          break;
+          result.push(rlast);
         }
-      }
-
-      if(intext.length!==0){
-          while(i>0){
-            arr.shift();
-            i--;
-          }
-          result.push(`<blockquote>${letmd.parse(intext.join('\n'))}</blockquote>`);
-          return true;
-      }
-    },
-  });
-
-  letmd.appendTextConfigs({//添加对无序列表的匹配
-    name:"unordered-list",
-    type:1,
-    check:function(arr,result){
-      let lis=[];
-      let li=[];
-      let sign='';
-      let i=0;
-      for(i=0;i<arr.length;i++){
-        let text=arr[i].trim();
-        let text_notrim=arr[i];
-        if(/^(\+|-|\*)\s/.test(text)&&(sign===''||text[0]===sign)){
-          if(lis.length>0){
-            li=[];
-          }
-          lis.push(li);
-          sign=text[0];
-          
-          li.push(text.substring(2));
-        }else if(i>0&&/(^\s{2,})|(^\s*$)/.test(text_notrim)){
-          li.push(text);
-        }else{
-          break;
-        }
-      }
-
-      if(lis.length!==0){
-          let lisHTML=[];
-          while(i>0){
-            arr.shift();
-            i--;
-          }
-          
-          lis.forEach((li)=>{
-            lisHTML.push(`<li>${letmd.parse(li.join('\n'))}</li>`)
-          });
-          
-
-          result.push(`<ul>${lisHTML.join('')}</ul>`);
-          return true;
-      }
-    },
-  });
-
-  letmd.appendTextConfigs({//添加对有序列表的匹配
-    name:"ordered-list",
-    type:1,
-    check:function(arr,result){
-      let lis=[];
-      let li=[];
-      let sign='';
-      let i=0;
-      for(i=0;i<arr.length;i++){
-        let text=arr[i].trim();
-        let text_notrim=arr[i];
-        if(/^\d+\.\s/.test(text)){
-          if(lis.length>0){
-            li=[];
-          }
-          lis.push(li);
-          sign=text[0];
-          
-          li.push(text.substring(3));
-        }else if(i>0&&/(^\s{2,})|(^\s*$)/.test(text_notrim)){
-          li.push(text);
-        }else{
-          break;
-        }
-      }
-
-      if(lis.length!==0){
-          let lisHTML=[];
-          while(i>0){
-            arr.shift();
-            i--;
-          }
-          
-          lis.forEach((li)=>{
-            lisHTML.push(`<li>${letmd.parse(li.join('\n'))}</li>`)
-          });
-          
-
-          result.push(`<ol>${lisHTML.join('')}</ol>`);
-          return true;
-      }
-    },
-  });
-
-  letmd.appendTextConfigs({//添加对代码区块-制表符格式的匹配
-    name:"precode",
-    type:1,
-    check:function(arr,result){
-      let codes=[];
-      let i=0;
-      for(i=0;i<arr.length;i++){
-        let text=arr[i];
-        if(/^(\s{4}|\t)/.test(text)){
-          codes.push(text.replace(/^(\s{4}|\t)/,''));
-        }else{
-          break;
-        }
-      }
-
-      if(codes.length!==0){
-          while(i>0){
-            arr.shift();
-            i--;
-          }
-
-          result.push(`<pre><code>${codes.join('\n')}</code></pre>`);
-          return true;
-      }
-    },
-  });
-
-
-  letmd.appendTextConfigs({//添加对代码区块-夹层格式的匹配
-    name:"precode",
-    type:1,
-    check:function(arr,result){
-      let codes=[];
-      let close=false;
-      let i=0;
-      for(i=0;i<arr.length;i++){
-        let text=arr[i].trim();
-        if(i===0&&!/^`{3}/.test(text)){
-          break;
-        }else if(i!==0&&/^`{3}\s*$/.test(text)){
-          close=true;
-          break;
-        }
-      }
-
-      if(close){
-          while(i>=0){
-            codes.push(arr.shift())
-            i--;
-          }
-          console.log(codes)
-          codes.pop();
-          codes.shift();
-
-          result.push(`<pre><code>${codes.join('\n')}</code></pre>`);
-          return true;
-      }
-    },
-  });
-
-
-
-
-  letmd.appendTextConfigs({//添加对p的匹配
-    name:"text",
-    type:1,
-    check:function(arr,result){
-      var text=arr[0].trim();
-      arr.shift();
-      result.push(`<p>${text}</p>`);
-      return true;
-    },
-  });
+        result.push(`<p>${text}</p>`);
+        return true;
+      },
+    }]); 
 
   $.get('/documents/example-1.md',function(data){
-    $('#old').html(data);
-    $('#new').html(letmd.parse(data));
-  });
+      $('#old').html(data);
+      $('#new').html(letmd.parse(data));
+    });
+
 </script>
