@@ -99,8 +99,8 @@
     },
   });
 
-  letmd.appendTextConfigs({//添加对列表的匹配
-    name:"blockquotes",
+  letmd.appendTextConfigs({//添加对无序列表的匹配
+    name:"unordered-list",
     type:1,
     check:function(arr,result){
       let lis=[];
@@ -139,6 +139,50 @@
           
 
           result.push(`<ul>${lisHTML.join('')}</ul>`);
+          return true;
+      }
+    },
+  });
+
+  letmd.appendTextConfigs({//添加对有序列表的匹配
+    name:"ordered-list",
+    type:1,
+    check:function(arr,result){
+      let lis=[];
+      let li=[];
+      let sign='';
+      let i=0;
+      for(i=0;i<arr.length;i++){
+        let text=arr[i].trim();
+        let text_notrim=arr[i];
+        if(/^\d+\.\s/.test(text)){
+          if(lis.length>0){
+            li=[];
+          }
+          lis.push(li);
+          sign=text[0];
+          
+          li.push(text.substring(3));
+        }else if(i>0&&/(^\s{2,})|(^\s*$)/.test(text_notrim)){
+          li.push(text);
+        }else{
+          break;
+        }
+      }
+
+      if(lis.length!==0){
+          let lisHTML=[];
+          while(i>0){
+            arr.shift();
+            i--;
+          }
+          
+          lis.forEach((li)=>{
+            lisHTML.push(`<li>${letmd.parse(li.join('\n'))}</li>`)
+          });
+          
+
+          result.push(`<ol>${lisHTML.join('')}</ol>`);
           return true;
       }
     },
