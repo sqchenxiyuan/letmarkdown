@@ -26,35 +26,46 @@
       check:function(arr,result){
         var text=arr[0].trim();
         if(/^#{1,6}\s+\S+\s*#*$/.test(text)){
-          let l=text.match(/^#{1,6}/)[0].length
+          let level=text.match(/^#{1,6}/)[0].length
           let content=text.replace(/^#{1,6}\s+/,'').replace(/\s*#*$/,'');
 
           arr.shift();
-          result.push(`<h${l}>${content}</h${l}>`)
-          return true;
+          return {
+            level,
+            content
+          };
         }
       },
+      parse:function(data){
+        return `<h${data.level}>${data.content}</h${data.level}>`
+      }
     },
     {//添加对Header的匹配
       name:"header",
       type:1,
       check:function(arr,result){
         if(arr.length<2) return false;
+
         var text1=arr[0].trim();
         if(text1.length===0)return false;
+
+        let level=0;
         var text2=arr[1].trim();
         if(/^={3,}$/.test(text2)){
-            arr.shift();
-            arr.shift();
-            result.push(`<h1>${text1}</h1>`)
-            return true;
+            level=1;
         }
 
         if(/^-{3,}$/.test(text2)){
-            arr.shift();
-            arr.shift();
-            result.push(`<h2>${text1}</h2>`)
-            return true;
+           level=2;
+        }
+
+        if(level){
+          arr.shift();
+          arr.shift();
+          return {
+            level:level,
+            content:text1
+          };
         }
       },
     },
@@ -64,13 +75,16 @@
       check:function(arr,result){
         var text=arr[0].split(/\s+/).join('');
         if(/^(-{3,}|\*{3,}|_{3,})$/.test(text)){
-              arr.shift()
-              result.push(`<hr>`)
-          }
+            arr.shift()
+            return {};
+        }
       },
+      parse:function(data){
+        return "<hr>";
+      }
     },
     {//添加对区块引用的匹配
-      name:"blockquotes",
+      name:"blockquote",
       type:1,
       check:function(arr,result){
         let intext=[];
@@ -91,10 +105,14 @@
               arr.shift();
               i--;
             }
-            result.push(`<blockquote>${letmd.parse(intext.join('\n'))}</blockquote>`);
-            return true;
+            return {
+              content:intext.join('\n')
+            };
         }
       },
+      parse:function(data){
+        return `<blockquote>${letmd.parse(data.content)}</blockquote>`;
+      }
     },
     {//添加对无序列表的匹配
       name:"unordered-list",
@@ -123,21 +141,30 @@
         }
 
         if(lis.length!==0){
-            let lisHTML=[];
+            
             while(i>0){
               arr.shift();
               i--;
             }
             
+            let listData=[];
             lis.forEach((li)=>{
-              lisHTML.push(`<li>${letmd.parse(li.join('\n'))}</li>`)
+              listData.push(li.join('\n'))
             });
             
-
-            result.push(`<ul>${lisHTML.join('')}</ul>`);
-            return true;
+            return {
+              listData:listData
+            };
         }
       },
+      parse:function(data){
+        let HTML="";
+        data.listData.forEach((list)=>{
+          HTML+=`<li>${letmd.parse(list)}</li>`;
+        });
+
+        return `<ul>${HTML}</ul>`;
+      }
     },
     {//添加对有序列表的匹配
       name:"ordered-list",
@@ -172,15 +199,24 @@
               i--;
             }
             
+            let listData=[];
             lis.forEach((li)=>{
-              lisHTML.push(`<li>${letmd.parse(li.join('\n'))}</li>`)
+              listData.push(li.join('\n'))
             });
             
-
-            result.push(`<ol>${lisHTML.join('')}</ol>`);
-            return true;
+            return {
+              listData:listData
+            };
         }
       },
+      parse:function(data){
+        let HTML="";
+        data.listData.forEach((list)=>{
+          HTML+=`<li>${letmd.parse(list)}</li>`;
+        });
+
+        return `<ol>${HTML}</ol>`;
+      }
     },
     {//添加对代码区块-制表符格式的匹配
       name:"precode",
@@ -203,8 +239,9 @@
               i--;
             }
 
-            result.push(`<pre><code>${codes.join('\n')}</code></pre>`);
-            return true;
+            return {
+              content:codes.join('\n')
+            }
         }
       },
     },
@@ -231,23 +268,31 @@
               i--;
             }
             codes.pop();
-            codes.shift();
+            codes.shift(); 
 
-            result.push(`<pre><code>${codes.join('\n')}</code></pre>`);
-            return true;
+            return {
+              content:codes.join('\n')
+            }
         }
       },
+      parse:function(data){
+
+        return `<pre><code>${data.content}</code></pre>`;
+      }
     },
     {//添加对空行的匹配
-      name:"text",
+      name:"null",
       type:1,
       check:function(arr,result){
         var text=arr[0];
-        if(/^\s*$/.test(text)&&/^<p>/.test(result[result.length-1])){
+        if(/^\s*$/.test(text)&&result[result.length-1].name!=="null"){
           arr.shift();
-          result.push('');
-          return true;
+          return {};
         }
+      },
+      parse:function(data){
+
+        return '';
       }
     },
     {//添加对p的匹配
@@ -256,15 +301,21 @@
       check:function(arr,result){
         var text=arr[0].trim();
         arr.shift();
-        let rlast=result.pop();
-        if(/^<p>.*<\/p>$/.test(rlast)){
-          text=rlast.replace(/^<p>/,'').replace(/<\/p>$/,'')+text;
+        let last=result.pop();
+        if(last&&last.name==='text'){
+          return {
+            content:last.data.content+text
+          };
         }else{
-          result.push(rlast);
+          return {
+            content:text
+          };
         }
-        result.push(`<p>${text}</p>`);
-        return true;
+        
       },
+      parse:function(data){
+        return `<p>${data.content}</p>`
+      }
     }]); 
 
   $.get('/documents/example-1.md',function(data){
